@@ -103,3 +103,56 @@ flutter test
 ```
 
 Covers unit conversion round-trips and the suggestion rule engine.
+
+## Mobile preview via Flutter Web on Firebase Hosting
+
+There is no Expo Go-style runner for Flutter, but you can still preview the
+app on your phone without a USB cable by hosting the web build and opening
+the URL in your phone's browser. A GitHub Actions workflow
+(`.github/workflows/deploy-web.yml`) builds and deploys the web target on
+every push to the feature branch / `main`.
+
+### One-time setup
+
+1. **Create a Firebase project**
+   ```bash
+   npm i -g firebase-tools
+   firebase login
+   firebase projects:create body-progress-preview   # or use an existing project
+   firebase use body-progress-preview
+   firebase init hosting   # accept defaults; it will see the existing firebase.json
+   ```
+   Copy `.firebaserc.example` to `.firebaserc` and set your project id.
+
+2. **Create a service account** for CI:
+   - Firebase Console → Project Settings → Service accounts → Generate new private key.
+   - Save the JSON.
+
+3. **Add GitHub repo secrets** (Settings → Secrets and variables → Actions):
+   - `FIREBASE_SERVICE_ACCOUNT` — paste the entire JSON file content
+   - `FIREBASE_PROJECT_ID` — e.g. `body-progress-preview`
+   - `SUPABASE_URL` — your Supabase URL
+   - `SUPABASE_ANON_KEY` — your Supabase anon key
+
+4. **Push to the branch.** The workflow will:
+   - Set up Flutter, run code generation.
+   - Download Drift's `sqlite3.wasm` and `drift_worker.js` into `web/` (versions pinned in the workflow).
+   - Build `flutter build web --release` with the Supabase config baked in.
+   - Deploy to Firebase Hosting at `https://<project>.web.app`.
+
+Open that URL on your phone — sign in with the same Supabase account and your
+data will appear. (Web persistence uses IndexedDB via Drift's WASM build.)
+
+### Local web preview
+
+```bash
+flutter create . --platforms=web --project-name body_progress
+dart run build_runner build --delete-conflicting-outputs
+# Copy Drift web assets into web/
+DRIFT=2.18.0 SQLITE=2.4.5
+curl -L "https://github.com/simolus3/drift/releases/download/drift_dev-$DRIFT/drift_worker.js" -o web/drift_worker.js
+curl -L "https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-$SQLITE/sqlite3.wasm" -o web/sqlite3.wasm
+flutter run -d chrome \
+  --dart-define=SUPABASE_URL=... \
+  --dart-define=SUPABASE_ANON_KEY=...
+```

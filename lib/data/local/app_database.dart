@@ -1,11 +1,9 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../models/body_checkin.dart';
+import 'db_opener_stub.dart'
+    if (dart.library.io) 'db_opener_io.dart'
+    if (dart.library.html) 'db_opener_web.dart';
 
 part 'app_database.g.dart';
 
@@ -74,7 +72,7 @@ class ProfilesTable extends Table {
 
 @DriftDatabase(tables: [CheckinsTable, ProfilesTable])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_open());
+  AppDatabase() : super(openExecutor());
   AppDatabase.test(QueryExecutor e) : super(e);
 
   @override
@@ -259,10 +257,3 @@ class AppDatabase extends _$AppDatabase {
       v == null ? null : DateTime.tryParse('$v');
 }
 
-LazyDatabase _open() {
-  return LazyDatabase(() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dir.path, 'body_progress.sqlite'));
-    return NativeDatabase.createInBackground(file);
-  });
-}

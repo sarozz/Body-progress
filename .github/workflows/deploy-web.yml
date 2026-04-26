@@ -1,0 +1,65 @@
+name: Deploy Flutter Web to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+      - claude/body-progress-tracker-RgNkO
+  workflow_dispatch:
+
+# Required secrets in repo settings:
+#   FIREBASE_SERVICE_ACCOUNT  - JSON service account key (Editor role on the project)
+#   FIREBASE_PROJECT_ID       - your Firebase project ID
+#   SUPABASE_URL              - https://<project>.supabase.co
+#   SUPABASE_ANON_KEY         - your Supabase anon/public key
+
+# Pinned versions of Drift's web assets. Bump together with the drift dep.
+env:
+  DRIFT_VERSION: "2.18.0"
+  SQLITE3_DART_VERSION: "2.4.5"
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Generate platform shells
+        run: flutter create . --platforms=web --project-name body_progress
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Download Drift web assets
+        run: |
+          mkdir -p web
+          curl -fsSL "https://github.com/simolus3/drift/releases/download/drift_dev-${DRIFT_VERSION}/drift_worker.js" -o web/drift_worker.js
+          curl -fsSL "https://github.com/simolus3/sqlite3.dart/releases/download/sqlite3-${SQLITE3_DART_VERSION}/sqlite3.wasm" -o web/sqlite3.wasm
+          ls -la web
+
+      - name: Build web
+        run: |
+          flutter build web --release \
+            --dart-define=SUPABASE_URL="${{ secrets.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}"
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          channelId: live
