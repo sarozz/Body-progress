@@ -1,0 +1,51 @@
+name: body_progress
+description: Track body measurements, weight and progress over time. Offline-first with Supabase sync.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # State management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Backend
+  supabase_flutter: ^2.5.6
+
+  # Local storage (Drift)
+  drift: ^2.18.0
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # Charts
+  fl_chart: ^0.68.0
+
+  # Forms / utilities
+  intl: ^0.19.0
+  uuid: ^4.4.0
+  collection: ^1.18.0
+  connectivity_plus: ^6.0.3
+  shared_preferences: ^2.2.3
+  flutter_secure_storage: ^9.2.2
+  file_saver: ^0.2.13
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.11
+  drift_dev: ^2.18.0
+  riverpod_generator: ^2.4.0
+  custom_lint: ^0.6.4
+  riverpod_lint: ^2.3.10
+
+flutter:
+  uses-material-design: true

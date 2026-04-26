@@ -1,0 +1,36 @@
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Generated
+**/*.g.dart
+**/*.freezed.dart
+**/*.config.dart
+**/*.gr.dart
+
+# Local env / secrets
+.env
+.env.*
+!.env.example
+ios/Flutter/.last_build_id
+
+# Drift db
+*.sqlite
+*.sqlite-journal
